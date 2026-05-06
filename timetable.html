@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>스마트 시간표</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f8fafc;
+    text-align: center;
+    margin: 0;
+}
+
+h1 {
+    margin: 30px 0 10px;
+}
+
+.container {
+    width: 90%;
+    margin: auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    padding: 20px;
+}
+
+select {
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    color: #666;
+}
+
+.time {
+    color: #888;
+    font-size: 13px;
+}
+
+.today {
+    background: #f1f5f9;
+}
+
+.now {
+    background: #dbeafe !important;
+    font-weight: 600;
+}
+
+.highlight {
+    background: #ffeaa7 !important;
+    font-weight: bold;
+}
+
+.hidden {
+    opacity: 0.15;
+}
+
+.lunch {
+    background: #fafafa;
+    cursor: pointer;
+}
+
+.lunch:hover {
+    background: #f1f5f9;
+}
+
+#mealBox {
+    display: none;
+    margin-top: 10px;
+}
+
+#mealBox li {
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+#mealBox li:last-child {
+    border-bottom: none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📅 나만의 시간표</h1>
+
+<!-- 🔽 과목 선택 -->
+<select id="subjectSelect">
+    <option value="">과목 선택</option>
+    <option>자료 구조</option>
+    <option>시스템 프로그래밍</option>
+    <option>응용 프로그래밍 개발</option>
+    <option>한국사1</option>
+    <option>문학</option>
+    <option>영어1</option>
+    <option>미술</option>
+    <option>자율</option>
+    <option>창체</option>
+    <option>스포츠 문화</option>
+</select>
+
+<div class="container">
+<table id="timetable">
+
+<tr>
+<th>교시</th><th>시간</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th>
+</tr>
+
+<tr>
+<td>1</td><td class="time">09:00</td>
+<td>자료 구조</td><td>시스템 프로그래밍</td><td>시스템 프로그래밍</td><td>응용 프로그래밍 개발</td><td>스포츠 문화</td>
+</tr>
+
+<tr>
+<td>2</td><td class="time">10:00</td>
+<td>응용 프로그래밍 개발</td><td>한국사1</td><td>미술</td><td>문학</td><td>응용 프로그래밍 개발</td>
+</tr>
+
+<tr>
+<td>3</td><td class="time">11:00</td>
+<td>문학</td><td>시스템 프로그래밍</td><td>응용 프로그래밍 개발</td><td>시스템 프로그래밍</td><td>응용 프로그래밍 개발</td>
+</tr>
+
+<tr>
+<td>4</td><td class="time">12:00</td>
+<td>한국사1</td><td>응용 프로그래밍 개발</td><td>응용 프로그래밍 개발</td><td>시스템 프로그래밍</td><td>문학</td>
+</tr>
+
+<!-- 🍱 점심 -->
+<tr class="lunch" id="lunchRow">
+<td colspan="7">
+🍽 점심시간 
+<div id="mealBox">
+<ul style="list-style:none; padding:0; margin:0;">
+<li>미니계란볶음밥</li>
+<li>관자오일파스타</li>
+<li>양송이스프</li>
+<li>모듬피클</li>
+<li>소떡위에피자</li>
+<li>저당샤인머스켓주스</li>
+</ul>
+</div>
+</td>
+</tr>
+
+<tr>
+<td>5</td><td class="time">13:50</td>
+<td>시스템 프로그래밍</td><td>영어1</td><td>영어1</td><td>한국사1</td><td>창체</td>
+</tr>
+
+<tr>
+<td>6</td><td class="time">14:50</td>
+<td>시스템 프로그래밍</td><td>미술</td><td>자율</td><td>자료 구조</td><td>창체</td>
+</tr>
+
+<tr>
+<td>7</td><td class="time">15:50</td>
+<td>시스템 프로그래밍</td><td></td><td></td><td>영어1</td><td></td>
+</tr>
+
+</table>
+</div>
+
+<script>
+// 📅 오늘 요일 강조 + ⏱ 현재 교시 강조
+function highlightNow() {
+    const today = new Date().getDay();
+    const table = document.getElementById("timetable");
+
+    if (today >= 1 && today <= 5) {
+        for (let row of table.rows) {
+            if (row.cells.length > today + 1) {
+                row.cells[today + 1].classList.add("today");
+            }
+        }
+    }
+
+    const now = new Date();
+    const time = now.getHours() * 60 + now.getMinutes();
+    const classTimes = [540,600,660,720,830,890,950];
+
+    let current = -1;
+    for (let i = 0; i < classTimes.length; i++) {
+        if (time >= classTimes[i] && (i === classTimes.length - 1 || time < classTimes[i + 1])) {
+            current = i + 1;
+            break;
+        }
+    }
+
+    if (current !== -1 && today >= 1 && today <= 5) {
+        const rows = document.querySelectorAll("#timetable tr");
+        rows.forEach(row => {
+            if (row.cells[0] && row.cells[0].innerText == current) {
+                row.cells[today + 1].classList.add("now");
+            }
+        });
+    }
+}
+
+highlightNow();
+
+// 🍱 급식 토글
+document.getElementById("lunchRow").onclick = () => {
+    const box = document.getElementById("mealBox");
+    box.style.display = box.style.display === "none" ? "block" : "none";
+};
+
+// 🎯 과목 필터
+const select = document.getElementById("subjectSelect");
+
+select.addEventListener("change", () => {
+    const selected = select.value;
+    const cells = document.querySelectorAll("#timetable td");
+
+    // 초기화
+    cells.forEach(td => {
+        td.classList.remove("highlight", "hidden");
+    });
+
+    // 선택 안 했으면 기본 상태 유지
+    if (!selected) return;
+
+    // 선택한 과목만 강조 + 나머지 흐리게
+    cells.forEach(td => {
+        if (td.innerText.trim() === selected) {
+            td.classList.add("highlight");
+        } else if (!td.closest(".lunch")) {
+            td.classList.add("hidden");
+        }
+    });
+});
+</script>
+
+</body>
+</html>
