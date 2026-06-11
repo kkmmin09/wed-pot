@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 급식</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+        }
+
+        .meal-container {
+            width: 700px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #meal-date {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        #meal-box {
+            background: #f8f9fa;
+            border-left: 6px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="meal-container">
+        <h1>🍱 오늘의 급식</h1>
+
+        <p id="meal-date">날짜 조회 중...</p>
+
+        <pre id="meal-box">
+급식 정보를 불러오는 중입니다...
+        </pre>
+    </div>
+
+    <script>
+        const today = new Date();
+
+        const year = today.getFullYear();
+
+        let month = today.getMonth() + 1;
+        if (month < 10) month = '0' + month;
+
+        let date = today.getDate();
+        if (date < 10) date = '0' + date;
+
+        const todayString =
+            `${year}${month}${date}`;
+
+        document.querySelector('#meal-date')
+            .textContent =
+            `조회 날짜: ${year}년 ${month}월 ${date}일`;
+
+        async function getTodayMeal() {
+
+            const myApiKey =
+                "ab588add239d4e219fb358ebb8b8838a";
+
+            const officeCode = "J10";
+            const schoolCode = "7530591";
+
+            const url =
+                `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${myApiKey}&Type=json&ATPT_OFCDC_SC_CODE=${officeCode}&SD_SCHUL_CODE=${schoolCode}&MLSV_YMD=${todayString}`;
+
+            try {
+
+                const response =
+                    await fetch(url);
+
+                const data =
+                    await response.json();
+
+                if (data.mealServiceDietInfo) {
+
+                    const mealRow =
+                        data.mealServiceDietInfo[1].row[0];
+
+                    const cleanMenu =
+                        mealRow.DDISH_NM.replace(/<br\/>/g, '\n');
+
+                    const calories =
+                        mealRow.CAL_INFO;
+
+                    document.querySelector('#meal-box')
+                        .textContent =
+                        `${cleanMenu}
+
+[총 칼로리: ${calories}]`;
+
+                } else {
+
+                    document.querySelector('#meal-box')
+                        .textContent =
+                        '오늘 급식 정보가 없습니다.';
+                }
+
+            } catch (error) {
+
+                document.querySelector('#meal-box')
+                    .textContent =
+                    '급식 정보를 불러오지 못했습니다.';
+
+                console.error(error);
+            }
+        }
+
+        getTodayMeal();
+    </script>
+
+</body>
+</html>
+
